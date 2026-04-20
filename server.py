@@ -26,8 +26,7 @@ def broadcast(text: str, exclude_sock: socket.socket | None = None):
             ok = safe_send(sock, text)
             if not ok:
                 dead_socks.append(sock)
-
-        # убрать тех, кто “умер” на отправке
+                
         if dead_socks:
             clients[:] = [c for c in clients if c["sock"] not in dead_socks]
             for s in dead_socks:
@@ -40,9 +39,8 @@ def broadcast(text: str, exclude_sock: socket.socket | None = None):
 def handle_client(client_socket: socket.socket, client_address):
     name = f"{client_address[0]}:{client_address[1]}"
 
-    # приветствие подключившемуся
     safe_send(client_socket, f"Добро пожаловать в чат! Вы: {name}\n")
-    # уведомление остальным
+    
     broadcast(f"[SYSTEM] {name} вошёл в чат\n", exclude_sock=client_socket)
 
     try:
@@ -55,13 +53,11 @@ def handle_client(client_socket: socket.socket, client_address):
             if not message:
                 continue
 
-            # команда выхода (удобно для практики)
             if message.lower() in ("/quit", "/exit"):
                 break
 
             print(f"От {name}: {message}")
 
-            # broadcast всем кроме отправителя
             broadcast(f"{name}: {message}\n", exclude_sock=client_socket)
 
     except ConnectionResetError:
@@ -69,7 +65,6 @@ def handle_client(client_socket: socket.socket, client_address):
     except Exception:
         pass
     finally:
-        # удалить клиента и закрыть сокет
         with client_lock:
             clients[:] = [c for c in clients if c["sock"] != client_socket]
 
